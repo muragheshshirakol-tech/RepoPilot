@@ -1,0 +1,31 @@
+﻿# Files Bob must NOT access during analysis
+# https://docs.bob.ibm.com/ignore-files
+
+.env
+.env.*
+!env.example
+secrets/
+*.key
+*.pem
+credentials.json
+config/credentials.json
+
+# Skip heavy directories
+node_modules/
+.next/
+.venv/
+venv/
+__pycache__/
+dist/
+build/
+
+# Skip generated artifacts
+*.lock
+package-lock.json
+poetry.lock
+
+# Skip large binaries
+*.zip
+*.tar.gz
+*.mp4
+*.mov
