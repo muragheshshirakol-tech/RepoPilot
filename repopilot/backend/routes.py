@@ -93,28 +93,21 @@ async def ask_question(job_id: str, request: QuestionRequest):
 
 # --- WebSocket Endpoint ---
 
-@router.websocket("/repos/{job_id}/stream")
-async def stream_progress(websocket: WebSocket, job_id: str):
-    """Live progress stream for the frontend analysis screen."""
-    await websocket.accept()
-    
-    # Check real DB instead of fake jobs_db
+@router.post("/repos/{job_id}/ask", response_model=AskResponse)
+async def ask_question(job_id: str, request: QuestionRequest):
+    """Grounded Q&A endpoint."""
     repo = db.get_repo(job_id)
     if not repo:
-        await websocket.send_json({"event": "error", "message": "Job not found"})
-        await websocket.close()
-        return
-
-    try:
-        # Mock stream for now. We will wire Sathwik's LangGraph pipeline here later.
-        await websocket.send_json({"event": "start", "job_id": job_id})
-        await websocket.send_json({"event": "progress", "node": "ingest", "status": "cloning"})
-        await websocket.send_json({"event": "progress", "node": "parse", "status": "parsing"})
-        await websocket.send_json({"event": "complete", "job_id": job_id})
+        raise HTTPException(status_code=404, detail="Job not found")
+    if not request.question.strip():
+        raise HTTPException(status_code=400, detail="Question cannot be empty")
         
-    except WebSocketDisconnect:
-        print(f"Client disconnected for job {job_id}")
-    except Exception as e:
-        await websocket.send_json({"event": "error", "message": str(e)})
-    finally:
-        await websocket.close()
+    # Call the new async qa.py pipeline
+    from qa import answer_question
+    
+    result = await answer_question(job_id, request.question)
+    
+    return AskResponse(
+        answer=result["answer"],
+        citations=[Citation(**c) for c in result["citations"]]
+    )
