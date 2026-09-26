@@ -71,6 +71,15 @@ def get_repo(repo_id: str) -> dict:
             cur.execute("SELECT * FROM repositories WHERE id = %s", (repo_id,))
             return cur.fetchone()
 
+def update_repo_status(repo_id: str, status: str, error_message: str = None):
+    """Update job status (queued/cloning/parsing/embedding/complete/failed)."""
+    with DatabaseContextManager() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE repositories SET status = %s, error_message = %s WHERE id = %s",
+                (status, error_message, repo_id)
+            )
+
 def save_plan(repo_id: str, role: str, plan_dict: dict) -> None:
     """Save the generated onboarding plan."""
     with DatabaseContextManager() as conn:
