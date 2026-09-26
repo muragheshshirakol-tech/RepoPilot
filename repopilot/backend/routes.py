@@ -70,10 +70,21 @@ async def get_tour(job_id: str):
 @router.post("/repos/{job_id}/ask", response_model=AskResponse)
 async def ask_question(job_id: str, request: QuestionRequest):
     """Grounded Q&A endpoint."""
-    if job_id not in jobs_db:
+    repo = db.get_repo(job_id)
+    if not repo:
         raise HTTPException(status_code=404, detail="Job not found")
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
+        
+    # Call the new qa.py pipeline
+    from qa import answer_question
+    
+    result = answer_question(job_id, request.question)
+    
+    return AskResponse(
+        answer=result["answer"],
+        citations=[Citation(**c) for c in result["citations"]]
+    )
         
     # TODO: Wire to qa.py in Phase 2 (T-42.01)
     return {
