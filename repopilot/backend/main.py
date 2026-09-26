@@ -1,11 +1,14 @@
 import os
 import uvicorn
+from dotenv import load_dotenv  # <--- MOVED TO TOP
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
-from routes import router  # Import the new routes
 
+# LOAD ENV VARS FIRST!
 load_dotenv()
+
+# Now it's safe to import routes (which imports db)
+from routes import router 
 
 app = FastAPI(title="RepoPilot Backend", version="1.0.0")
 
