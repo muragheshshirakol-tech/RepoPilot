@@ -60,3 +60,9 @@ Thumbs.db
 # ---------------------------
 /tmp/
 *.log
+
+.env
+/backend/
+test_ky/
+test_fastapi/
+test_express/
