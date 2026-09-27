@@ -1,10 +1,22 @@
 from __future__ import annotations
 
+import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+
+NPM = shutil.which("npm")
+
+if NPM is None and os.name == "nt":
+    NPM = shutil.which("npm.cmd")
+
+if NPM is None:
+    raise SystemExit(
+        "npm executable not found. Make sure Node.js/npm is installed and available on PATH."
+    )
 
 
 def run(cmd: list[str], *, cwd: Path = ROOT, extra_env: dict[str, str] | None = None) -> None:
@@ -30,8 +42,8 @@ run([sys.executable, "-m", "pytest", "-q", "backend"])
 frontend = ROOT / "frontend"
 require_frontend = __import__("os").environ.get("REQUIRE_FRONTEND_BUILD", "0") == "1"
 if (frontend / "node_modules").is_dir():
-    run(["npm", "run", "typecheck"], cwd=frontend, extra_env={"NEXT_PUBLIC_API_URL": "https://example.invalid"})
-    run(["npm", "run", "build"], cwd=frontend, extra_env={"NEXT_PUBLIC_API_URL": "https://example.invalid"})
+    run([NPM, "run", "typecheck"], cwd=frontend, extra_env={"NEXT_PUBLIC_API_URL": "https://example.invalid"})
+    run([NPM, "run", "build"], cwd=frontend, extra_env={"NEXT_PUBLIC_API_URL": "https://example.invalid"})
 else:
     if require_frontend:
         raise SystemExit("Frontend install/build was required but frontend/node_modules is absent")

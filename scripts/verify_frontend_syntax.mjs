@@ -1,10 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-const require = createRequire(import.meta.url);
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(scriptDir, "..", "frontend");
+
+// Resolve TypeScript from the frontend's own node_modules.
+const require = createRequire(
+  pathToFileURL(path.join(root, "package.json"))
+);
 const ts = require("typescript");
-const root = path.resolve(process.cwd(), "frontend");
+
 const extensions = new Set([".ts", ".tsx"]);
 const ignored = new Set(["node_modules", ".next", ".vercel"]);
 const files = [];
